@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useCompany } from './hooks/useCompany'
-import { isMainDomain } from './utils/subdomain'
+import { isMainDomain, getSubdomain } from './utils/subdomain'
 import { Header } from './components/layout/Header'
 import { Sidebar } from './components/layout/Sidebar'
 import { Dashboard } from './components/dashboard/Dashboard'
@@ -9,16 +9,28 @@ import { TicketList } from './components/tickets/TicketList'
 import { NewTicketForm } from './components/tickets/NewTicketForm'
 import { TicketDetail } from './components/tickets/TicketDetail'
 import { LandingPage } from './components/landing/LandingPage'
+import { AdminPanel } from './components/admin/AdminPanel'
 import { Toaster } from './components/ui/toaster'
 import { Button } from './components/ui/button'
 import { Card, CardContent } from './components/ui/card'
 import { Ticket } from './types'
 
 function App() {
-  const { user, currentUser, loading: authLoading, login } = useAuth()
+  const subdomain = getSubdomain()
   const { company, loading: companyLoading, error: companyError } = useCompany()
+  const { user, currentUser, loading: authLoading, login } = useAuth(company)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+
+  // Show admin panel for 'admin' subdomain
+  if (subdomain === 'admin') {
+    return (
+      <>
+        <AdminPanel />
+        <Toaster />
+      </>
+    )
+  }
 
   // Show landing page for main domain
   if (isMainDomain()) {
@@ -52,9 +64,17 @@ function App() {
             <p className="text-gray-600 mb-4">
               The subdomain you're trying to access doesn't exist or has been deactivated.
             </p>
-            <Button onClick={() => window.location.href = '/'}>
-              Go to Main Site
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={() => window.location.href = '/?subdomain=admin'} className="w-full">
+                Go to Admin Panel
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = '/?subdomain=demo'} className="w-full">
+                Try Demo
+              </Button>
+              <Button variant="ghost" onClick={() => window.location.href = '/'} className="w-full">
+                Go to Main Site
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
