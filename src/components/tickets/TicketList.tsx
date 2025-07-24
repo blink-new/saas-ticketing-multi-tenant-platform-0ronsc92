@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -12,7 +13,7 @@ import { useCompany } from '../../hooks/useCompany'
 import { formatDistanceToNow } from 'date-fns'
 
 interface TicketListProps {
-  onTicketSelect: (ticket: Ticket) => void
+  onTicketSelect?: (ticket: Ticket) => void
 }
 
 export function TicketList({ onTicketSelect }: TicketListProps) {
@@ -22,6 +23,7 @@ export function TicketList({ onTicketSelect }: TicketListProps) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   
+  const navigate = useNavigate()
   const { currentUser } = useAuth()
   const { company } = useCompany()
 
@@ -171,7 +173,7 @@ export function TicketList({ onTicketSelect }: TicketListProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onTicketSelect(ticket)}
+                    onClick={() => onTicketSelect ? onTicketSelect(ticket) : navigate(`/tickets/${ticket.id}`)}
                     className="ml-4"
                   >
                     <Eye className="h-4 w-4" />

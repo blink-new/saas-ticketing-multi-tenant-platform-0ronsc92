@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useCompany } from './hooks/useCompany'
 import { isMainDomain, getSubdomain } from './utils/subdomain'
@@ -15,12 +16,12 @@ import { Button } from './components/ui/button'
 import { Card, CardContent } from './components/ui/card'
 import { Ticket } from './types'
 
-function App() {
+function AppContent() {
   const subdomain = getSubdomain()
   const { company, loading: companyLoading, error: companyError } = useCompany()
   const { user, currentUser, loading: authLoading, login } = useAuth(company)
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   // Show admin panel for 'admin' subdomain
   if (subdomain === 'admin') {
@@ -122,77 +123,51 @@ function App() {
     )
   }
 
-  const handleTicketCreated = () => {
-    setActiveTab('tickets')
-  }
-
-  const handleTicketUpdated = () => {
-    // Refresh ticket list or selected ticket
-    if (selectedTicket) {
-      // Could fetch updated ticket here
-    }
-  }
-
-  const renderContent = () => {
-    if (selectedTicket) {
-      return (
-        <TicketDetail
-          ticket={selectedTicket}
-          onBack={() => setSelectedTicket(null)}
-          onTicketUpdated={handleTicketUpdated}
-        />
-      )
-    }
-
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard />
-      case 'tickets':
-        return <TicketList onTicketSelect={setSelectedTicket} />
-      case 'new-ticket':
-        return (
-          <NewTicketForm
-            onTicketCreated={handleTicketCreated}
-            onCancel={() => setActiveTab('tickets')}
-          />
-        )
-      case 'users':
-        return (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">User Management</h3>
-            <p className="text-gray-600">Coming soon...</p>
-          </div>
-        )
-      case 'analytics':
-        return (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Analytics</h3>
-            <p className="text-gray-600">Coming soon...</p>
-          </div>
-        )
-      case 'settings':
-        return (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Settings</h3>
-            <p className="text-gray-600">Coming soon...</p>
-          </div>
-        )
-      default:
-        return <Dashboard />
-    }
-  }
-
+  // Main app layout with routing
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <div className="flex h-[calc(100vh-4rem)]">
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <Sidebar />
         <main className="flex-1 overflow-auto p-6">
-          {renderContent()}
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/tickets" element={<TicketList />} />
+            <Route path="/tickets/new" element={<NewTicketForm />} />
+            <Route path="/tickets/:id" element={<TicketDetail />} />
+            <Route path="/users" element={
+              <div className="text-center py-12">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">User Management</h3>
+                <p className="text-gray-600">Coming soon...</p>
+              </div>
+            } />
+            <Route path="/analytics" element={
+              <div className="text-center py-12">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Analytics</h3>
+                <p className="text-gray-600">Coming soon...</p>
+              </div>
+            } />
+            <Route path="/settings" element={
+              <div className="text-center py-12">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Settings</h3>
+                <p className="text-gray-600">Coming soon...</p>
+              </div>
+            } />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
         </main>
       </div>
       <Toaster />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   )
 }
 
